@@ -1,0 +1,94 @@
+﻿@page "/"
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<h1>Lista studentów</h1>
+
+<EditForm Model="@request" OnValidSubmit="GetStudents">
+    <div style="padding: 10px 0; display:flex; align-items: center; justify-content:space-between; gap:25px">
+        <MudTextField @bind-Value="request.LastNameOrAlbum" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="nazwisko lub nr albumu"></MudTextField>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" ButtonType="ButtonType.Submit">Szukaj</MudButton>
+    </div>
+</EditForm>
+
+@if (students == null)
+{
+    <p><em>Pobieranie listy studentów...</em></p>
+}
+else
+{
+    <div style="padding-bottom:25px">
+
+        <div style="padding:10px 0">
+            <MudPagination ShowPreviousButton="true" ShowNextButton="true" Color="Color.Primary"
+                           Selected="@pageNumber" Count="@numberOfPages" SelectedChanged="ZmianaStrony" />
+        </div>
+
+        <MudTable Items="@students" Hover="true" Breakpoint="Breakpoint.Sm">
+            <HeaderContent>
+                <MudTh>Nazwisko i Imię</MudTh>
+                <MudTh>Nr albumu</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh Style="text-align:right!important">&nbsp;</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.FullName</MudTd>
+                <MudTd>@context.AlbumNumber</MudTd>
+                <MudTd>@context.StatusName</MudTd>
+                <MudTd Style="text-align:right!important">
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => GetDetails(context.Id)">Szczegóły</MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </div>
+
+}
+
+@code {
+
+    private StudentBasicDto[]? students;
+
+    int pageNumber = 1;
+    int pageSize = 10;
+    int totalItemsCount;
+    int numberOfPages;
+    GetStudentsPagedRequest request = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetStudents();
+    }
+
+    private void GetDetails(Guid id)
+    {
+        NavigationManager.NavigateTo($"student/{id.ToString()}");
+    }
+
+    private async Task GetStudents()
+    {
+        request.PageNumber = pageNumber;
+        request.PageSize = pageSize;
+        var url = $"student?pageNumber={request.PageNumber}&pageSize={request.PageSize}";
+
+        if (!string.IsNullOrWhiteSpace(request.LastNameOrAlbum))
+            url += $"&lastnameoralbum={request.LastNameOrAlbum}";
+
+        var data = await HttpClient.GetFromJsonAsync<PagedList<StudentBasicDto>>(url);
+        if (data != null)
+        {
+            students = data.Items;
+            totalItemsCount = data.TotalItemsCount;
+            numberOfPages = data.NumberOfPages;
+            pageNumber = data.PageNumber;
+            pageSize = data.PageSize;
+        }
+    }
+
+    private async Task ZmianaStrony(int page)
+    {
+        pageNumber = page;
+        await GetStudents();
+    }
+
+}

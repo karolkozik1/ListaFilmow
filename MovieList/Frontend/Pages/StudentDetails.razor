@@ -1,0 +1,31 @@
+﻿@page "/student/{Id}"
+@inject HttpClient HttpClient
+
+@if (student != null)
+{
+    <MudText Typo="Typo.h5">@student.FullName</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Primary">Nr albumu: @student.AlbumNumber</MudText>
+}
+
+
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    private StudentDto? student;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var url = $"student/student?id={Id}";
+        var data = await HttpClient.GetFromJsonAsync<StudentDto?>(url);
+        if (data != null)
+        {
+            student = data;
+            StateHasChanged();
+        }
+    }
+
+}
