@@ -1,0 +1,87 @@
+﻿@page "/create"
+@inject HttpClient HttpClient
+
+<h1>Dodawanie nowego studenta</h1>
+
+
+<div class="form-group mb-2">
+    <MudTextField @bind-Value="request.Title" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="proszę podać tytuł filmu"></MudTextField>
+</div>
+<div class="form-group mb-2">
+    <MudTextField @bind-Value="request.Director" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="proszę podać reżysera"></MudTextField>
+</div>
+<div class="form-group mb-2">
+    <MudTextField @bind-Value="request.ReleaseYear" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="proszę podać rok produkcji"></MudTextField>
+</div>
+<div style="margin-top:10px">
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="CreateMovie">Zapisz film</MudButton>
+</div>
+
+
+<br/>
+
+@if (errorMessage != null)
+{
+    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+}
+
+@if (successMessage != null)
+{
+    <MudAlert Severity="Severity.Success">@successMessage</MudAlert>
+}
+
+
+@code {
+
+    CreateMovieRequest request = new();
+    string[]? validationErrors;
+    string? errorMessage;
+    string? successMessage;
+
+
+    async Task CreateMovie()
+    {
+        successMessage = null;
+        errorMessage = null;
+
+        if (!Validate())
+            return;
+
+        var response = await HttpClient.PostAsJsonAsync("movie", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            successMessage = await response.Content.ReadAsStringAsync();
+            request = new CreateMovieRequest();
+        }
+        else
+        {
+            errorMessage = "Nie udało się zapisać filmu. Sprawdź, czy film o tym tytule i roku wydania już nie istnieje.";
+        }
+    }
+
+    bool Validate()
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            errors.Add("Tytuł jest wymagany");
+
+        if (string.IsNullOrWhiteSpace(request.Director))
+            errors.Add("Reżyser jest wymagany");
+
+        if (request.ReleaseYear == null)
+            errors.Add("Rok wydania jest wymagany");
+        else if (request.ReleaseYear < 1888 || request.ReleaseYear > DateTime.Now.Year + 5)
+            errors.Add("Rok wydania jest nieprawidłowy");
+
+        if (errors.Count > 0)
+        {
+            errorMessage = string.Join(", ", errors);
+            return false;
+        }
+
+        return true;
+    }
+
+}

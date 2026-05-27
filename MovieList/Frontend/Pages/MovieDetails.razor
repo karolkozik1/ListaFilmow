@@ -1,0 +1,32 @@
+﻿@page "/movie/{Id}"
+@inject HttpClient HttpClient
+
+@if (movie != null)
+{
+    <MudText Typo="Typo.h5">@movie.Title</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Primary">Reżyser: @movie.Director</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Primary">Rok wydania: @movie.ReleaseYear</MudText>
+}
+
+
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    private MovieDto? movie;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var url = $"movie/movie?id={Id}";
+        var data = await HttpClient.GetFromJsonAsync<MovieDto?>(url);
+        if (data != null)
+        {
+            movie = data;
+            StateHasChanged();
+        }
+    }
+
+}
