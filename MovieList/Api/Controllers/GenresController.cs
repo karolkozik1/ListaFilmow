@@ -1,5 +1,6 @@
 using Api.Database;
 using Api.Mapping;
+using Common.Genres;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ public class GenresController(MovieContext context) : ControllerBase
     private readonly MovieContext _context = context;
 
     [HttpGet]
+    [ProducesResponseType(typeof(List<GenreDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var genres = await _context.Genres

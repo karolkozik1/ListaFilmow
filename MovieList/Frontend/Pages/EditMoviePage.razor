@@ -1,0 +1,205 @@
+﻿@page "/edit/{MovieId:guid}"
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<h1>Edycja filmu</h1>
+
+@if (isLoading)
+{
+    <p><em>Ładowanie danych filmu...</em></p>
+}
+else
+{
+    <div class="form-group mb-2">
+        <MudTextField @bind-Value="request.Title"
+                      Margin="Margin.Dense"
+                      Variant="Variant.Outlined"
+                      Label="Tytuł filmu" />
+    </div>
+
+    <div class="form-group mb-2">
+        <MudTextField @bind-Value="request.Director"
+                      Margin="Margin.Dense"
+                      Variant="Variant.Outlined"
+                      Label="Reżyser filmu" />
+    </div>
+
+    <div class="form-group mb-2">
+        <MudNumericField T="int?"
+                         @bind-Value="request.ReleaseYear"
+                         Margin="Margin.Dense"
+                         Variant="Variant.Outlined"
+                         Label="Rok wydania" />
+    </div>
+
+    <div class="form-group mb-2">
+        <MudSelect T="Guid?"
+                   @bind-Value="request.GenreId"
+                   Margin="Margin.Dense"
+                   Variant="Variant.Outlined"
+                   Label="Gatunek">
+            <MudSelectItem T="Guid?" Value="null">Brak gatunku</MudSelectItem>
+
+            @foreach (var genre in genres)
+            {
+                <MudSelectItem T="Guid?" Value="@genre.Id">@genre.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
+
+    <div class="form-group mb-2">
+        <MudSelect T="int?"
+                   @bind-Value="request.StatusId"
+                   Margin="Margin.Dense"
+                   Variant="Variant.Outlined"
+                   Label="Status">
+            <MudSelectItem T="int?" Value="null">Brak statusu</MudSelectItem>
+
+            @foreach (var status in statuses)
+            {
+                <MudSelectItem T="int?" Value="@status.Id">@status.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
+
+    <div style="margin-top:10px">
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   @onclick="UpdateMovie">
+            Zapisz zmiany
+        </MudButton>
+
+        <MudButton Color="Color.Secondary"
+                   Variant="Variant.Outlined"
+                   Style="margin-left: 10px"
+                   @onclick="GoBack">
+            Anuluj
+        </MudButton>
+    </div>
+
+    <br />
+
+    @if (validationErrors.Count > 0)
+    {
+        <MudAlert Severity="Severity.Error">
+            <ul>
+                @foreach (var error in validationErrors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </MudAlert>
+    }
+
+    @if (successMessage != null)
+    {
+        <MudAlert Severity="Severity.Success">@successMessage</MudAlert>
+    }
+}
+
+@code {
+    [Parameter]
+    public Guid MovieId { get; set; }
+
+    private UpdateMovieRequest request = new();
+
+    private List<GenreDto> genres = new();
+    private List<StatusDto> statuses = new();
+
+    private List<string> validationErrors = new();
+
+    private string? successMessage;
+
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDictionaries();
+        await LoadMovie();
+        isLoading = false;
+    }
+
+    private async Task LoadDictionaries()
+    {
+        var genresResponse = await HttpClient.GetFromJsonAsync<List<GenreDto>>("genres");
+        if (genresResponse != null)
+            genres = genresResponse;
+
+        var statusesResponse = await HttpClient.GetFromJsonAsync<List<StatusDto>>("statuses");
+        if (statusesResponse != null)
+            statuses = statusesResponse;
+    }
+
+    private async Task LoadMovie()
+    {
+        var movie = await HttpClient.GetFromJsonAsync<MovieDto>($"movie/{MovieId}");
+
+        if (movie == null)
+        {
+            validationErrors.Add("Nie udało się pobrać danych filmu.");
+            return;
+        }
+
+        request = new UpdateMovieRequest
+        {
+            Title = movie.Title,
+            Director = movie.Director,
+            ReleaseYear = movie.ReleaseYear,
+            GenreId = movie.GenreId,
+            StatusId = movie.StatusId
+        };
+    }
+
+    private async Task UpdateMovie()
+    {
+        successMessage = null;
+        validationErrors.Clear();
+
+        if (!Validate())
+            return;
+
+        var response = await HttpClient.PutAsJsonAsync($"movie/{MovieId}", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            successMessage = "Zapisano zmiany.";
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+
+            if (!string.IsNullOrWhiteSpace(error))
+                validationErrors.Add(error);
+            else
+                validationErrors.Add("Nie udało się zapisać zmian.");
+        }
+    }
+
+    private bool Validate()
+    {
+        validationErrors.Clear();
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            validationErrors.Add("Tytuł jest wymagany.");
+
+        if (string.IsNullOrWhiteSpace(request.Director))
+            validationErrors.Add("Reżyser jest wymagany.");
+
+        if (request.ReleaseYear == null)
+        {
+            validationErrors.Add("Rok wydania jest wymagany.");
+        }
+        else if (request.ReleaseYear < 1888 || request.ReleaseYear > DateTime.Now.Year + 5)
+        {
+            validationErrors.Add("Rok wydania jest nieprawidłowy.");
+        }
+
+        return validationErrors.Count == 0;
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

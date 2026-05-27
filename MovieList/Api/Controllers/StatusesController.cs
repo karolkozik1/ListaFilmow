@@ -1,5 +1,6 @@
 using Api.Database;
 using Api.Mapping;
+using Common.Statuses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,10 +13,11 @@ public class StatusesController(MovieContext context) : ControllerBase
     private readonly MovieContext _context = context;
 
     [HttpGet]
+    [ProducesResponseType(typeof(List<StatusDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var statuses = await _context.Statuses
-            .OrderBy(status => status.Name)
+            .OrderBy(status => status.Id)
             .Select(status => status.ToStatusDto())
             .ToListAsync(cancellationToken);
 

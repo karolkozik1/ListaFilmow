@@ -4,5 +4,5 @@ using MediatR;
 
 namespace Api.Movies.GetMovieById;
 
-public record GetMovieByIdQuery(string Id) : IRequest<MovieDto?>;
+public record GetMovieByIdQuery(Guid Id) : IRequest<MovieDto?>;
 
