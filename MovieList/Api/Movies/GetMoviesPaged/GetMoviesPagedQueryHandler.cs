@@ -1,4 +1,5 @@
 using Api.Database;
+using Api.Database.Entities;
 using Api.Extensions;
 using Api.Mapping;
 using Common.CommonData;
@@ -24,6 +25,7 @@ public class GetMoviesPagedQueryHandler(MovieContext context)
         if (!string.IsNullOrWhiteSpace(request.Request.TitleOrYear))
         {
             var search = request.Request.TitleOrYear.Trim();
+            var searchLower = search.ToLower();
 
             if (int.TryParse(search, out var year))
             {
@@ -31,7 +33,9 @@ public class GetMoviesPagedQueryHandler(MovieContext context)
             }
             else
             {
-                query = query.Where(movie => movie.Title.ToLower().Contains(search.ToLower()));
+                query = query.Where(movie =>
+                    movie.Title.ToLower().Contains(searchLower) ||
+                    movie.Director.ToLower().Contains(searchLower));
             }
         }
 

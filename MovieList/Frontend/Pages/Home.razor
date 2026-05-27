@@ -6,7 +6,7 @@
 
 <EditForm Model="@request" OnValidSubmit="GetMovies">
     <div style="padding: 10px 0; display:flex; align-items: center; justify-content:space-between; gap:25px">
-        <MudTextField @bind-Value="request.TitleOrYear" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="tytuł albo rok wydania"></MudTextField>
+        <MudTextField @bind-Value="request.TitleOrYear" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="tytuł, reżyser albo rok wydania"></MudTextField>
         <MudButton Variant="Variant.Filled" Size="Size.Small" ButtonType="ButtonType.Submit">Szukaj</MudButton>
     </div>
 </EditForm>
