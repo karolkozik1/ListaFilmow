@@ -45,10 +45,10 @@ public class MovieController(ISender sender, IValidationProblemsHandler handler)
         return Ok(result);
     }
 
-    [HttpGet]
-    [Route("movie")]
-    [ProducesResponseType(typeof(MovieDto), (int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    //[HttpGet]
+    //[Route("movie")]
+    //[ProducesResponseType(typeof(MovieDto), (int)HttpStatusCode.OK)]
+    //[ProducesResponseType((int)HttpStatusCode.NoContent)]
     //public async Task<IActionResult> GetById([FromQuery] string id, CancellationToken token)
     //{
     //    var query = new GetMovieByIdQuery(id);

@@ -47,16 +47,16 @@ else
                     else{<span>Brak ocen</span>}
                 </MudTd>
                 <MudTd Style="text-align:right!important">
-                    <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => GetDetails(context.Id)">Szczegóły</MudButton>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => GetDetails(context.Id))">Szczegóły</MudButton>
                 </MudTd>
                 <MudTd>
-                    <MudButton Variant="Variant.Outlined"
-                               Color="Color.Primary"
-                               Size="Size.Small"
-                               Href="@($"/edit/{context.Id}")">
-                        Edytuj
-                    </MudButton>
-                </MudTd>
+    <MudButton Variant="Variant.Outlined"
+               Color="Color.Primary"
+               Size="Size.Small"
+               Href="@($"/edit/{context.Id}")">
+        Edytuj
+    </MudButton>
+</MudTd>
             </RowTemplate>
         </MudTable>
     </div>
@@ -81,7 +81,7 @@ else
 
     private void GetDetails(Guid id)
     {
-        NavigationManager.NavigateTo($"movie/{id.ToString()}");
+        NavigationManager.NavigateTo($"/movie/{id}");
     }
 
     private async Task GetMovies()

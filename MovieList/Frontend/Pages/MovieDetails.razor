@@ -1,34 +1,52 @@
-﻿@page "/movie/{Id}"
+﻿@page "/movie/{MovieId:guid}"
 @inject HttpClient HttpClient
 
-@if (movie != null)
+<h1>Szczegóły filmu</h1>
+
+@if (errorMessage != null)
+{
+    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+}
+else if (movie == null)
+{
+    <p><em>Ładowanie danych filmu...</em></p>
+}
+else
 {
     <MudText Typo="Typo.h5">@movie.Title</MudText>
     <MudText Typo="Typo.body2" Color="Color.Primary">Reżyser: @movie.Director</MudText>
     <MudText Typo="Typo.body2" Color="Color.Primary">Rok wydania: @movie.ReleaseYear</MudText>
-    @* <MudText Typo="Typo.body2" Color="Color.Primary">Gatunek: @movie.GenreName</MudText>
-    <MudText Typo="Typo.body2" Color="Color.Primary">Status: @movie.StatusName</MudText> *@
+    <MudText Typo="Typo.body2" Color="Color.Primary">Gatunek: @(movie.GenreName ?? "Brak")</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Primary">Status: @(movie.StatusName ?? "Brak")</MudText>
+
+    @if (movie.AverageRating.HasValue)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Primary">
+            Ocena: @movie.AverageRating.Value.ToString("0.0") / 10 (@movie.RatingsCount)
+        </MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.body2" Color="Color.Primary">Ocena: Brak ocen</MudText>
+    }
 }
 
-
-
 @code {
-
     [Parameter]
-    [SupplyParameterFromQuery]
-    public string? Id { get; set; }
+    public Guid MovieId { get; set; }
 
     private MovieDto? movie;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        var url = $"movie/movie?id={Id}";
-        var data = await HttpClient.GetFromJsonAsync<MovieDto?>(url);
-        if (data != null)
+        try
         {
-            movie = data;
-            StateHasChanged();
+            movie = await HttpClient.GetFromJsonAsync<MovieDto>($"movie/{MovieId}");
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"Nie udało się pobrać danych filmu: {ex.Message}";
         }
     }
-
 }
