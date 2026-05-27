@@ -29,12 +29,22 @@ else
                 <MudTh>Tytuł</MudTh>
                 <MudTh>Reżyser</MudTh>
                 <MudTh>Rok wydania</MudTh>
+                <MudTh>Gatunek</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Ocena</MudTh>
 
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Title</MudTd>
                 <MudTd>@context.Director</MudTd>
                 <MudTd>@context.ReleaseYear</MudTd>
+                <MudTd>@(context.GenreName ?? "Brak")</MudTd>
+                <MudTd>@(context.StatusName ?? "Brak")</MudTd>
+                <MudTd>
+                    @if (context.AverageRating.HasValue)
+                    {<span>@context.AverageRating.Value.ToString("0.0") / 10 (@context.RatingsCount)</span>}
+                    else{<span>Brak ocen</span>}
+                </MudTd>
                 <MudTd Style="text-align:right!important">
                     <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => GetDetails(context.Id)">Szczegóły</MudButton>
                 </MudTd>
@@ -46,7 +56,7 @@ else
 
 @code {
 
-    private MovieBasicDto[]? movies;
+    private MovieDto[]? movies;
 
     int pageNumber = 1;
     int pageSize = 10;
@@ -74,7 +84,7 @@ else
         if (!string.IsNullOrWhiteSpace(request.TitleOrYear))
             url += $"&titleoryear={request.TitleOrYear}";
 
-        PagedList<MovieBasicDto>? data = await HttpClient.GetFromJsonAsync<PagedList<MovieBasicDto>>(url);
+        PagedList<MovieDto>? data = await HttpClient.GetFromJsonAsync<PagedList<MovieDto>>(url);
         if (data != null)
         {
             movies = data.Items;

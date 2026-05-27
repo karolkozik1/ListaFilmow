@@ -26,13 +26,21 @@ public class Movie
     [NotNull]
     public int ReleaseYear { get; set; }
 
+    [Column("GenreId")]
+    public Guid? GenreId { get; set; }
+
+    [ForeignKey(nameof(GenreId))]
+    public Genre? Genre { get; set; }
+
+    
 
     [ForeignKey("StatusId")]
-    public int StatusId { get; set; } = 1;
+    public int? StatusId { get; set; } = 1;
 
     public virtual Status? Status { get; set; }
 
-    // public virtual ICollection<Course>? Courses { get; set; }
-    // public virtual ICollection<Note>? Notes { get; set; }
+    //public ICollection<Movie> Movies { get; set; } = new List<Movie>();
+    public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
+
 }
 

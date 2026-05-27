@@ -7,4 +7,8 @@ public class CreateMovieRequest
     public string? Director { get; set; }
 
     public int? ReleaseYear { get; set; }
+
+    public Guid? GenreId { get; set; }
+
+    public int? StatusId { get; set; }
 }

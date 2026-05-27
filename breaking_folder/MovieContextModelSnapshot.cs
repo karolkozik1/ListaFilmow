@@ -76,11 +76,11 @@ namespace Api.Migrations
 
                     b.Property<string>("Director")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
                         .HasColumnName("Director");
 
-                    b.Property<Guid?>("GenreId")
+                    b.Property<Guid>("GenreId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("GenreId");
 
@@ -102,6 +102,9 @@ namespace Api.Migrations
                     b.HasIndex("GenreId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("Title")
+                        .IsUnique();
 
                     b.ToTable("Movies");
                 });
@@ -172,12 +175,12 @@ namespace Api.Migrations
                     b.HasOne("Api.Database.Entities.Genre", "Genre")
                         .WithMany("Movies")
                         .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Api.Database.Entities.Status", "Status")
-                        .WithMany("Movies")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("StatusId");
 
                     b.Navigation("Genre");
 
@@ -203,11 +206,6 @@ namespace Api.Migrations
             modelBuilder.Entity("Api.Database.Entities.Movie", b =>
                 {
                     b.Navigation("Ratings");
-                });
-
-            modelBuilder.Entity("Api.Database.Entities.Status", b =>
-                {
-                    b.Navigation("Movies");
                 });
 #pragma warning restore 612, 618
         }

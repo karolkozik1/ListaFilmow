@@ -1,28 +1,80 @@
 ﻿@page "/create"
 @inject HttpClient HttpClient
 
-<h1>Dodawanie nowego studenta</h1>
+<h1>Dodawanie nowego filmu</h1>
 
+<div class="form-group mb-2">
+    <MudTextField @bind-Value="request.Title"
+                  Margin="Margin.Dense"
+                  Variant="Variant.Outlined"
+                  Label="Tytuł filmu" />
+</div>
 
 <div class="form-group mb-2">
-    <MudTextField @bind-Value="request.Title" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="proszę podać tytuł filmu"></MudTextField>
+    <MudTextField @bind-Value="request.Director"
+                  Margin="Margin.Dense"
+                  Variant="Variant.Outlined"
+                  Label="Reżyser filmu" />
 </div>
+
 <div class="form-group mb-2">
-    <MudTextField @bind-Value="request.Director" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="proszę podać reżysera"></MudTextField>
+    <MudNumericField T="int?"
+                     @bind-Value="request.ReleaseYear"
+                     Margin="Margin.Dense"
+                     Variant="Variant.Outlined"
+                     Label="Rok wydania" />
 </div>
+
 <div class="form-group mb-2">
-    <MudTextField @bind-Value="request.ReleaseYear" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="proszę podać rok produkcji"></MudTextField>
+    <MudSelect T="Guid?"
+               @bind-Value="request.GenreId"
+               Margin="Margin.Dense"
+               Variant="Variant.Outlined"
+               Label="Gatunek">
+        <MudSelectItem T="Guid?" Value="null">Brak gatunku</MudSelectItem>
+
+        @foreach (var genre in genres)
+        {
+            <MudSelectItem T="Guid?" Value="@genre.Id">@genre.Name</MudSelectItem>
+        }
+    </MudSelect>
 </div>
+
+<div class="form-group mb-2">
+    <MudSelect T="int?"
+               @bind-Value="request.StatusId"
+               Margin="Margin.Dense"
+               Variant="Variant.Outlined"
+               Label="Status">
+        <MudSelectItem T="int?" Value="null">Brak statusu</MudSelectItem>
+
+        @foreach (var status in statuses)
+        {
+            <MudSelectItem T="int?" Value="@status.Id">@status.Name</MudSelectItem>
+        }
+    </MudSelect>
+</div>
+
 <div style="margin-top:10px">
-    <MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="CreateMovie">Zapisz film</MudButton>
+    <MudButton Color="Color.Primary"
+               Variant="Variant.Filled"
+               @onclick="CreateMovie">
+        Zapisz film
+    </MudButton>
 </div>
 
+<br />
 
-<br/>
-
-@if (errorMessage != null)
+@if (validationErrors.Count > 0)
 {
-    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+    <MudAlert Severity="Severity.Error">
+        <ul>
+            @foreach (var error in validationErrors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </MudAlert>
 }
 
 @if (successMessage != null)
@@ -30,19 +82,36 @@
     <MudAlert Severity="Severity.Success">@successMessage</MudAlert>
 }
 
-
 @code {
+    private CreateMovieRequest request = new();
 
-    CreateMovieRequest request = new();
-    string[]? validationErrors;
-    string? errorMessage;
-    string? successMessage;
+    private List<GenreDto> genres = new();
+    private List<StatusDto> statuses = new();
 
+    private List<string> validationErrors = new();
 
-    async Task CreateMovie()
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDictionaries();
+    }
+
+    private async Task LoadDictionaries()
+    {
+        var genresResponse = await HttpClient.GetFromJsonAsync<List<GenreDto>>("genres");
+        if (genresResponse != null)
+            genres = genresResponse;
+
+        var statusesResponse = await HttpClient.GetFromJsonAsync<List<StatusDto>>("statuses");
+        if (statusesResponse != null)
+            statuses = statusesResponse;
+    }
+
+    private async Task CreateMovie()
     {
         successMessage = null;
-        errorMessage = null;
+        validationErrors.Clear();
 
         if (!Validate())
             return;
@@ -56,32 +125,34 @@
         }
         else
         {
-            errorMessage = "Nie udało się zapisać filmu. Sprawdź, czy film o tym tytule i roku wydania już nie istnieje.";
+            var error = await response.Content.ReadAsStringAsync();
+
+            if (!string.IsNullOrWhiteSpace(error))
+                validationErrors.Add(error);
+            else
+                validationErrors.Add("Nie udało się zapisać filmu.");
         }
     }
 
-    bool Validate()
+    private bool Validate()
     {
-        var errors = new List<string>();
+        validationErrors.Clear();
 
         if (string.IsNullOrWhiteSpace(request.Title))
-            errors.Add("Tytuł jest wymagany");
+            validationErrors.Add("Tytuł jest wymagany.");
 
         if (string.IsNullOrWhiteSpace(request.Director))
-            errors.Add("Reżyser jest wymagany");
+            validationErrors.Add("Reżyser jest wymagany.");
 
         if (request.ReleaseYear == null)
-            errors.Add("Rok wydania jest wymagany");
-        else if (request.ReleaseYear < 1888 || request.ReleaseYear > DateTime.Now.Year + 5)
-            errors.Add("Rok wydania jest nieprawidłowy");
-
-        if (errors.Count > 0)
         {
-            errorMessage = string.Join(", ", errors);
-            return false;
+            validationErrors.Add("Rok wydania jest wymagany.");
+        }
+        else if (request.ReleaseYear < 1888 || request.ReleaseYear > DateTime.Now.Year + 5)
+        {
+            validationErrors.Add("Rok wydania jest nieprawidłowy.");
         }
 
-        return true;
+        return validationErrors.Count == 0;
     }
-
 }

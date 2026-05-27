@@ -4,17 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Api.Database.Entities;
 
-[Table("Statuses")]
-public class Status
+public class Genre
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [Column("Id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    [Column("Name")]
-    [NotNull]
-    [StringLength(20)]
     public string Name { get; set; } = string.Empty;
 
     public ICollection<Movie> Movies { get; set; } = new List<Movie>();

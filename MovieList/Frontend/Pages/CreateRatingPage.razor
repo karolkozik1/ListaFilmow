@@ -1,0 +1,124 @@
+﻿@page "/rating"
+@inject HttpClient HttpClient
+
+<h1>Dodawanie oceny filmu</h1>
+
+<div class="form-group mb-2">
+    <MudSelect T="Guid"
+               @bind-Value="request.MovieId"
+               Margin="Margin.Dense"
+               Variant="Variant.Outlined"
+               Label="Film">
+        @foreach (var movie in movies)
+        {
+            <MudSelectItem T="Guid" Value="@movie.Id">
+                @movie.Title (@movie.ReleaseYear)
+            </MudSelectItem>
+        }
+    </MudSelect>
+</div>
+
+<div class="form-group mb-2">
+    <MudNumericField T="int"
+                     @bind-Value="request.Score"
+                     Margin="Margin.Dense"
+                     Variant="Variant.Outlined"
+                     Label="Ocena od 1 do 10" />
+</div>
+
+<div class="form-group mb-2">
+    <MudTextField @bind-Value="request.Comment"
+                  Margin="Margin.Dense"
+                  Variant="Variant.Outlined"
+                  Label="Komentarz" />
+</div>
+
+<div style="margin-top:10px">
+    <MudButton Color="Color.Primary"
+               Variant="Variant.Filled"
+               @onclick="CreateRating">
+        Dodaj ocenę
+    </MudButton>
+</div>
+
+<br />
+
+@if (validationErrors.Count > 0)
+{
+    <MudAlert Severity="Severity.Error">
+        <ul>
+            @foreach (var error in validationErrors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </MudAlert>
+}
+
+@if (successMessage != null)
+{
+    <MudAlert Severity="Severity.Success">@successMessage</MudAlert>
+}
+
+@code {
+    private CreateRatingRequest request = new();
+
+    private List<MovieDto> movies = new();
+
+    private List<string> validationErrors = new();
+
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var data = await HttpClient.GetFromJsonAsync<PagedList<MovieDto>>("movie?pageNumber=1&pageSize=100");
+
+        if (data != null)
+            movies = data.Items.ToList();
+
+        if (movies.Count > 0)
+            request.MovieId = movies.First().Id;
+    }
+
+    private async Task CreateRating()
+    {
+        successMessage = null;
+        validationErrors.Clear();
+
+        if (!Validate())
+            return;
+
+        var response = await HttpClient.PostAsJsonAsync("ratings", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            successMessage = "Dodano ocenę filmu.";
+            request = new CreateRatingRequest();
+
+            if (movies.Count > 0)
+                request.MovieId = movies.First().Id;
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+
+            if (!string.IsNullOrWhiteSpace(error))
+                validationErrors.Add(error);
+            else
+                validationErrors.Add("Nie udało się dodać oceny.");
+        }
+    }
+
+    private bool Validate()
+    {
+        validationErrors.Clear();
+
+        if (request.MovieId == Guid.Empty)
+            validationErrors.Add("Wybór filmu jest wymagany.");
+
+        if (request.Score < 1 || request.Score > 10)
+            validationErrors.Add("Ocena musi być liczbą od 1 do 10.");
+
+        return validationErrors.Count == 0;
+    }
+}

@@ -10,5 +10,15 @@ public class MovieDto
         public string Director { get; set; } = string.Empty;
 
         public int ReleaseYear { get; set; }
+        public Guid? GenreId { get; set; }
+
+        public string? GenreName { get; set; }
+
+        public int? StatusId { get; set; }
+        public string? StatusName { get; set; }
+
+        public double? AverageRating { get; set; }
+
+        public int? RatingsCount { get; set; }
 }
     

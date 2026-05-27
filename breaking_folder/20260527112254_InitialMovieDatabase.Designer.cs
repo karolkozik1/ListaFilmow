@@ -4,6 +4,7 @@ using Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(MovieContext))]
-    partial class MovieContextModelSnapshot : ModelSnapshot
+    [Migration("20260527112254_InitialMovieDatabase")]
+    partial class InitialMovieDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,33 +42,6 @@ namespace Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Genres");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                            Name = "Akcja"
-                        },
-                        new
-                        {
-                            Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                            Name = "Dramat"
-                        },
-                        new
-                        {
-                            Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-                            Name = "Komedia"
-                        },
-                        new
-                        {
-                            Id = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"),
-                            Name = "Science fiction"
-                        },
-                        new
-                        {
-                            Id = new Guid("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
-                            Name = "Horror"
-                        });
                 });
 
             modelBuilder.Entity("Api.Database.Entities.Movie", b =>
@@ -76,19 +52,18 @@ namespace Api.Migrations
 
                     b.Property<string>("Director")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
                         .HasColumnName("Director");
 
                     b.Property<Guid?>("GenreId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("GenreId");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("ReleaseYear")
                         .HasColumnType("int")
                         .HasColumnName("ReleaseYear");
 
-                    b.Property<int?>("StatusId")
+                    b.Property<int>("StatusId")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -103,6 +78,9 @@ namespace Api.Migrations
 
                     b.HasIndex("StatusId");
 
+                    b.HasIndex("Title")
+                        .IsUnique();
+
                     b.ToTable("Movies");
                 });
 
@@ -116,9 +94,6 @@ namespace Api.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<Guid>("MovieId")
                         .HasColumnType("uniqueidentifier");
 
@@ -129,10 +104,7 @@ namespace Api.Migrations
 
                     b.HasIndex("MovieId");
 
-                    b.ToTable("Ratings", t =>
-                        {
-                            t.HasCheckConstraint("CK_Ratings_Score", "[Score] >= 1 AND [Score] <= 10");
-                        });
+                    b.ToTable("Ratings");
                 });
 
             modelBuilder.Entity("Api.Database.Entities.Status", b =>
@@ -175,9 +147,10 @@ namespace Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Api.Database.Entities.Status", "Status")
-                        .WithMany("Movies")
+                        .WithMany()
                         .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Genre");
 
@@ -203,11 +176,6 @@ namespace Api.Migrations
             modelBuilder.Entity("Api.Database.Entities.Movie", b =>
                 {
                     b.Navigation("Ratings");
-                });
-
-            modelBuilder.Entity("Api.Database.Entities.Status", b =>
-                {
-                    b.Navigation("Movies");
                 });
 #pragma warning restore 612, 618
         }
