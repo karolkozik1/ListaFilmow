@@ -1,30 +1,31 @@
 ﻿using Api.Database.Entities;
-using Common.Students;
+using Common.Movies;
 
 namespace Api.Mapping;
 
 public static class Mapper
 {
-    public static StudentBasicDto ToStudentBasicDto(this Student student)
+    public static MovieBasicDto ToMovieBasicDto(this Movie movie)
     {
-        return new StudentBasicDto
+        return new MovieBasicDto
         {
-            Id = student.Id,
-            FirstName = student.FirstName,
-            LastName = student.LastName,
-            AlbumNumber = student.AlbumNumber,
-            StatusId = student.StatusId,
-            StatusName = student.Status!.Name
+            Id = movie.Id,
+            Title = movie.Title,
+            Director = movie.Director,
+            ReleaseYear = movie.ReleaseYear,
+            StatusId = movie.StatusId,
+            StatusName = movie.Status!.Name
         };
     }
 
-    public static StudentDto ToStudentDto(this Student student)
+    public static MovieDto ToMovieDto(this Movie movie)
     {
-        return new StudentDto
+        return new MovieDto
         {
-            Id= student.Id,
-            FullName = $"{student.LastName} {student.FirstName}",
-            AlbumNumber = student.AlbumNumber,
+            Id = movie.Id,
+            Title = movie.Title,
+            Director = movie.Director,
+            ReleaseYear = movie.ReleaseYear
         };
     }
 }

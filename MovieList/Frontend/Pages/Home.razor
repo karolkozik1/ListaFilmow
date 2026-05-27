@@ -2,18 +2,18 @@
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 
-<h1>Lista studentów</h1>
+<h1>Lista filmów</h1>
 
-<EditForm Model="@request" OnValidSubmit="GetStudents">
+<EditForm Model="@request" OnValidSubmit="GetMovies">
     <div style="padding: 10px 0; display:flex; align-items: center; justify-content:space-between; gap:25px">
-        <MudTextField @bind-Value="request.LastNameOrAlbum" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="nazwisko lub nr albumu"></MudTextField>
+        <MudTextField @bind-Value="request.TitleOrYear" Margin="Margin.Dense" Variant="Variant.Outlined" Placeholder="tytuł albo rok wydania"></MudTextField>
         <MudButton Variant="Variant.Filled" Size="Size.Small" ButtonType="ButtonType.Submit">Szukaj</MudButton>
     </div>
 </EditForm>
 
-@if (students == null)
+@if (movies == null)
 {
-    <p><em>Pobieranie listy studentów...</em></p>
+    <p><em>Pobieranie listy filmów...</em></p>
 }
 else
 {
@@ -21,20 +21,20 @@ else
 
         <div style="padding:10px 0">
             <MudPagination ShowPreviousButton="true" ShowNextButton="true" Color="Color.Primary"
-                           Selected="@pageNumber" Count="@numberOfPages" SelectedChanged="ZmianaStrony" />
+                        Selected="@pageNumber" Count="@numberOfPages" SelectedChanged="ZmianaStrony" />
         </div>
 
-        <MudTable Items="@students" Hover="true" Breakpoint="Breakpoint.Sm">
+        <MudTable Items="@movies" Hover="true" Breakpoint="Breakpoint.Sm">
             <HeaderContent>
-                <MudTh>Nazwisko i Imię</MudTh>
-                <MudTh>Nr albumu</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh Style="text-align:right!important">&nbsp;</MudTh>
+                <MudTh>Tytuł</MudTh>
+                <MudTh>Reżyser</MudTh>
+                <MudTh>Rok wydania</MudTh>
+
             </HeaderContent>
             <RowTemplate>
-                <MudTd>@context.FullName</MudTd>
-                <MudTd>@context.AlbumNumber</MudTd>
-                <MudTd>@context.StatusName</MudTd>
+                <MudTd>@context.Title</MudTd>
+                <MudTd>@context.Director</MudTd>
+                <MudTd>@context.ReleaseYear</MudTd>
                 <MudTd Style="text-align:right!important">
                     <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => GetDetails(context.Id)">Szczegóły</MudButton>
                 </MudTd>
@@ -46,38 +46,38 @@ else
 
 @code {
 
-    private StudentBasicDto[]? students;
+    private MovieBasicDto[]? movies;
 
     int pageNumber = 1;
     int pageSize = 10;
     int totalItemsCount;
     int numberOfPages;
-    GetStudentsPagedRequest request = new();
+    GetMoviesPagedRequest request = new();
 
 
     protected override async Task OnInitializedAsync()
     {
-        await GetStudents();
+        await GetMovies();
     }
 
     private void GetDetails(Guid id)
     {
-        NavigationManager.NavigateTo($"student/{id.ToString()}");
+        NavigationManager.NavigateTo($"movie/{id.ToString()}");
     }
 
-    private async Task GetStudents()
+    private async Task GetMovies()
     {
         request.PageNumber = pageNumber;
         request.PageSize = pageSize;
-        var url = $"student?pageNumber={request.PageNumber}&pageSize={request.PageSize}";
+        var url = $"movie?pageNumber={request.PageNumber}&pageSize={request.PageSize}";
 
-        if (!string.IsNullOrWhiteSpace(request.LastNameOrAlbum))
-            url += $"&lastnameoralbum={request.LastNameOrAlbum}";
+        if (!string.IsNullOrWhiteSpace(request.TitleOrYear))
+            url += $"&titleoryear={request.TitleOrYear}";
 
-        var data = await HttpClient.GetFromJsonAsync<PagedList<StudentBasicDto>>(url);
+        PagedList<MovieBasicDto>? data = await HttpClient.GetFromJsonAsync<PagedList<MovieBasicDto>>(url);
         if (data != null)
         {
-            students = data.Items;
+            movies = data.Items;
             totalItemsCount = data.TotalItemsCount;
             numberOfPages = data.NumberOfPages;
             pageNumber = data.PageNumber;
@@ -88,7 +88,7 @@ else
     private async Task ZmianaStrony(int page)
     {
         pageNumber = page;
-        await GetStudents();
+        await GetMovies();
     }
 
 }

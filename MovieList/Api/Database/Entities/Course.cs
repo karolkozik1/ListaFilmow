@@ -17,6 +17,6 @@ namespace Api.Database.Entities
         [StringLength(200)]
         public string Name { get; set; } = string.Empty;
 
-        public virtual ICollection<Student>? Students { get; set; }
+        public virtual ICollection<Movie>? Movies { get; set; }
     }
 }

@@ -1,3 +1,3 @@
-# dziekanatone
+# MovieList
 
-Bazy danych i aplikacje - grupa 1 TP - studia dzienne
+Aplikacja webowa do przeglądania listy filmów
