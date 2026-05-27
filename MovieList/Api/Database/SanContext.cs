@@ -4,13 +4,12 @@ using System.Security.Claims;
 
 namespace Api.Database;
 
-public class MovieContext : DbContext
+public class SanContext : DbContext
 {
-    public MovieContext(DbContextOptions<MovieContext> options) : base(options) { }
+    public SanContext(DbContextOptions<SanContext> options) : base(options) { }
     public required virtual DbSet<Status> Statuses { get; set; }
     public required virtual DbSet<Movie> Movies { get; set; }
-    // public required virtual DbSet<Course> Courses { get; set; }
-    // public required virtual DbSet<Note> Notes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Movie>(entity =>
