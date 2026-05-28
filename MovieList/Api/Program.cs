@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowBlazorFrontends",
         policy =>
         {
-            policy.WithOrigins("https://localhost:7000",
+            policy.WithOrigins("http://localhost:7000","https://localhost:7000",
                                "http://localhost:7001",
                                "https://localhost:7001"
                                )
@@ -38,6 +38,13 @@ builder.Services.AddMediatR(cfg => {
 builder.Services.AddScoped<IValidationProblemsHandler, ValidationProblemsHandler>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<MovieContext>();
+    db.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
